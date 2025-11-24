@@ -9,7 +9,7 @@ const authMiddleware = require('../middleware/auth');
 // Hardcoded admin credentials (change these!)
 const ADMIN_CREDENTIALS = {
   username: 'admin',
-  password: 'admin123', // Change this password!
+  password: 'admin@852##', // Change this password!
   email: 'admin@citycollegeofmanagement.com'
 };
 
