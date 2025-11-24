@@ -12,24 +12,33 @@ const app = express();
 // ============================================================
 // CORS Configuration
 // ============================================================
+const allowedOrigins = [
+  // Local development
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5174',
+  'http://localhost:4173',
+
+  // Deployed frontend
+  'https://citycollegelko.vercel.app',
+
+  // Custom domain (when attached)
+  'https://citycollegelko.com',
+  'https://www.citycollegelko.com',
+];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:5174',
-      'http://localhost:4173',
-      'https://citycollegelko.vercel.app',
-      'http://citycollegelko.com',
-    ];
-
+    // Allow requests with no origin (mobile apps, Postman, server-to-server)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+
+    // Unknown origin – block but don't crash the server
+    console.warn('❌ CORS blocked origin:', origin);
+    return callback(null, false);
   },
   credentials: true,
   optionsSuccessStatus: 200,
@@ -40,6 +49,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+// Preflight
 app.options('*', cors(corsOptions));
 
 // ============================================================
@@ -171,6 +181,8 @@ app.use((err, req, res, next) => {
     });
   }
 
+  // This will still be used if *you* throw that error manually elsewhere,
+  // but CORS itself no longer throws it from the origin callback.
   if (err.message === 'Not allowed by CORS') {
     return res.status(403).json({
       success: false,
