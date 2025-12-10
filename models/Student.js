@@ -6,6 +6,8 @@ const studentSchema = new mongoose.Schema(
     // Basic / system
     registrationNo: {
       type: String,
+      unique: true,
+      sparse: true,
     },
 
     // Personal details (match frontend)

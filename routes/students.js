@@ -6,6 +6,7 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 const Student = require('../models/Student');
+const Counter = require('../models/Counter');
 
 // ==============================
 // Multer + Cloudinary Storage
@@ -35,15 +36,20 @@ const validateStudent = [
   body('dateOfBirth').notEmpty().withMessage('Date of birth is required'),
 ];
 
-// Helper: generate registration number like CC202500001, CC202500002, etc.
+// Helper: generate unique registration number like CC202500001, CC202500002, etc.
 const generateRegistrationNo = async () => {
   const now = new Date();
   const year = now.getFullYear();
+  const counterId = `registrationNo_${year}`;
 
-  // Get the count of existing students to generate sequential number
-  const studentCount = await Student.countDocuments();
-  const sequentialNumber = (studentCount + 1).toString().padStart(5, '0');
+  // Use findOneAndUpdate with atomic increment to ensure uniqueness
+  const counter = await Counter.findOneAndUpdate(
+    { _id: counterId },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
 
+  const sequentialNumber = counter.seq.toString().padStart(5, '0');
   return `CC${year}${sequentialNumber}`;
 };
 
@@ -75,6 +81,7 @@ router.post(
       const photoUrl = photoFile ? photoFile.path : null;
       const signatureUrl = signatureFile ? signatureFile.path : null;
 
+      // Generate unique registration number using atomic counter
       const registrationNo = await generateRegistrationNo();
 
       const body = req.body;
