@@ -35,11 +35,16 @@ const validateStudent = [
   body('dateOfBirth').notEmpty().withMessage('Date of birth is required'),
 ];
 
-// Helper: generate registration number like CCM2025xxxxx
-const generateRegistrationNo = () => {
+// Helper: generate registration number like CC202500001, CC202500002, etc.
+const generateRegistrationNo = async () => {
   const now = new Date();
   const year = now.getFullYear();
-  return `CCM${year}${now.getTime().toString().slice(-5)}`;
+
+  // Get the count of existing students to generate sequential number
+  const studentCount = await Student.countDocuments();
+  const sequentialNumber = (studentCount + 1).toString().padStart(5, '0');
+
+  return `CC${year}${sequentialNumber}`;
 };
 
 // ==============================
@@ -70,7 +75,7 @@ router.post(
       const photoUrl = photoFile ? photoFile.path : null;
       const signatureUrl = signatureFile ? signatureFile.path : null;
 
-      const registrationNo = generateRegistrationNo();
+      const registrationNo = await generateRegistrationNo();
 
       const body = req.body;
 
