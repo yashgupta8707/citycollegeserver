@@ -106,11 +106,18 @@ router.post(
       });
     } catch (error) {
       console.error('Student registration error:', error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
 
       if (error.code === 11000) {
+        const field = Object.keys(error.keyPattern || {})[0];
         return res.status(400).json({
           success: false,
-          message: 'Email or Aadhar already registered',
+          message: `${field || 'Field'} already registered`,
         });
       }
 
@@ -118,6 +125,7 @@ router.post(
         success: false,
         message: 'Registration failed',
         error: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }
